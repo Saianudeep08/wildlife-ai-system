@@ -12,5 +12,4 @@ ultralytics
 python-dotenv
 birdnetlib
 librosa
-tensorflow
 resampy
