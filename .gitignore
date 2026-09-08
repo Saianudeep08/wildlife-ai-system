@@ -1,0 +1,53 @@
+
+# Deployment exclusions
+backend/app/ml/train_animal_audio_model.py
+backend/app/ml/train_audio_model_v3.py
+backend/audio_dataset/labels/
+backend/yolov8n-cls.pt
+backend/yolov8n.pt
+
+
+# Deployment exclusions - local only
+animal_audio_dataset_source/
+wildlife-management/
+backend/venv/
+backend/.venv/
+backend/**/venv/
+backend/**/.venv/
+backend/app/ml/train_animal_audio_model.py
+backend/app/ml/train_audio_model_v3.py
+backend/audio_dataset/labels/
+backend/yolov8n-cls.pt
+backend/yolov8n.pt
+
+# More local-only deployment exclusions
+backend/.env
+backend/SnapshotSerengeti_v2_1_annotations.csv
+backend/SnapshotSerengeti_v2_1_images.csv
+backend/animal_audio_dataset/raw/
+backend/runs/
+backend/training_data/
+backend/training_data_expanded/
+backend/uploads/
+backend/confusion_matrix_expanded.png
+backend/train_wildlife.py.before-expanded
+backend/train_wildlife_expanded.py
+
+**/__pycache__/
+*.pyc
+
+
+frontend/node_modules/
+
+# Training-only files
+backend/prepare_dataset.py
+backend/requirements-training.txt
+backend/train_wildlife.py
+backend/audio_dataset/raw/
+backend/audio_dataset/processed/test_60s.wav
+backend/audio_dataset/processed/wildlife_audio_classifier_v2.joblib
+backend/audio_dataset/processed/wildlife_audio_classifier_v3.joblib
+frontend/src/*.backup
+frontend/src/*.before-*
+frontend/src/pages/*.backup
+frontend/src/pages/*.before-*

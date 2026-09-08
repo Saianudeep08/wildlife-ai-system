@@ -1,0 +1,72 @@
+venv/
+.venv/
+env/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Runtime uploads
+uploads/
+
+# Training datasets
+training_data/
+training_data_expanded/
+
+# Training outputs
+runs/
+
+# Raw audio training data
+audio_dataset/raw/
+animal_audio_dataset/raw/
+
+# Audio processed files - keep only production models
+audio_dataset/processed/*
+!audio_dataset/processed/wildlife_audio_classifier.joblib
+
+animal_audio_dataset/processed/*
+!animal_audio_dataset/processed/animal_audio_classifier.joblib
+
+# Local audio dataset artifacts
+animal_audio_dataset_source/
+
+# Dataset metadata
+*.csv
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.swp
+
+# Logs
+*.log
+
+# Node
+node_modules/
+
+# Build/cache
+.cache/
+.pytest_cache/
+.mypy_cache/
