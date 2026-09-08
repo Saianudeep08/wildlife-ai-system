@@ -3,22 +3,33 @@ import tempfile
 
 import librosa
 import soundfile as sf
-from birdnetlib import Recording
-from birdnetlib.analyzer import Analyzer
 
+# BirdNET is optional for lightweight deployments. The custom animal
+# classifier can still operate when BirdNET/TensorFlow is unavailable.
+try:
+    from birdnetlib import Recording
+    from birdnetlib.analyzer import Analyzer
 
-analyzer = Analyzer()
+    analyzer = Analyzer()
+    BIRDNET_AVAILABLE = True
+except Exception as error:
+    analyzer = None
+    BIRDNET_AVAILABLE = False
+    print("BirdNET unavailable:", error)
+
 
 SEGMENT_DURATION = 60
 
 
 def analyze_audio(file_path: str, lat: float = 0.0, lon: float = 0.0):
     """
-    Analyze an audio file in 60-second segments using BirdNET.
-
-    Detection timestamps are converted back to the original
-    audio timeline before being returned.
+    Analyze an audio file in 60-second segments using BirdNET when available.
+    Returns an empty list when BirdNET is unavailable so the custom animal
+    classifier can still process the upload.
     """
+
+    if not BIRDNET_AVAILABLE:
+        return []
 
     duration = librosa.get_duration(path=file_path)
 
