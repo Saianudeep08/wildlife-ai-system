@@ -17,12 +17,18 @@ UPLOAD_DIR = "uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 
+def audio_log(message):
+    print(f"AUDIO: {message}", flush=True)
+
+
 @router.post("/upload/{survey_id}")
 def upload_audio(
     survey_id: int,
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
 ):
+    audio_log(f"upload received: survey_id={survey_id}, filename={file.filename}")
+
     # --------------------------------------------------------
     # SAVE UPLOADED AUDIO
     # --------------------------------------------------------
@@ -34,27 +40,39 @@ def upload_audio(
     with open(filepath, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
+    audio_log(f"file saved: {filepath}")
+
     # --------------------------------------------------------
     # BIRDNET WILDLIFE DETECTION
     # --------------------------------------------------------
 
     birdnet_detections = []
+    audio_log("BirdNET analysis started")
 
     try:
         birdnet_detections = analyze_audio(filepath)
+        audio_log(f"BirdNET analysis finished: {len(birdnet_detections)} detections")
     except Exception as error:
-        print("BirdNET analysis failed:", error)
+        print("BirdNET analysis failed:", error, flush=True)
+        audio_log("BirdNET analysis skipped/failed")
 
     # --------------------------------------------------------
     # CUSTOM ANIMAL CLASSIFIER
     # --------------------------------------------------------
 
     animal_detection = None
+    audio_log("custom animal classifier started")
 
     try:
         animal_detection = analyze_animal_audio(filepath)
+        audio_log(
+            "custom animal classifier finished: "
+            f"animal={animal_detection.get('animal') if animal_detection else None}, "
+            f"confidence={animal_detection.get('confidence') if animal_detection else None}"
+        )
     except Exception as error:
-        print("Animal classifier failed:", error)
+        print("Animal classifier failed:", error, flush=True)
+        audio_log("custom animal classifier failed")
 
     # --------------------------------------------------------
     # BIRDNET OBSERVATIONS
@@ -150,11 +168,15 @@ def upload_audio(
     # SAVE DATABASE CHANGES
     # --------------------------------------------------------
 
+    audio_log(f"database commit started: {len(observations_created)} observations")
     db.commit()
+    audio_log("database commit finished")
 
     # --------------------------------------------------------
     # RESPONSE
     # --------------------------------------------------------
+
+    audio_log("request completed successfully")
 
     return {
         "observations": observations_created,
