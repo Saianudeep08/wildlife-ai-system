@@ -3,6 +3,7 @@ import os
 import joblib
 import librosa
 import numpy as np
+import soundfile as sf
 
 
 MODEL_PATH = (
@@ -29,19 +30,34 @@ def audio_log(message):
 def extract_features(file_path):
     """
     Extract the same 88 features used during training.
+
+    Use soundfile directly for WAV decoding instead of librosa.load.
+    This avoids the Render free-tier stall observed during audio loading.
     """
 
-    audio_log("librosa.load started")
-    y, sr = librosa.load(
-        file_path,
-        sr=SAMPLE_RATE,
-        mono=True,
-        duration=MAX_DURATION,
-    )
-    audio_log(f"librosa.load finished: {len(y)} samples at {sr} Hz")
+    audio_log("soundfile.read started")
+    y, sr = sf.read(file_path, dtype="float32", always_2d=False)
+    audio_log(f"soundfile.read finished: {len(y)} samples at {sr} Hz")
 
     if len(y) == 0:
         raise ValueError("Audio file contains no usable audio data.")
+
+    if y.ndim > 1:
+        y = np.mean(y, axis=1)
+
+    max_samples = int(MAX_DURATION * sr)
+    if len(y) > max_samples:
+        y = y[:max_samples]
+
+    if sr != SAMPLE_RATE:
+        audio_log(f"resampling started: {sr} -> {SAMPLE_RATE} Hz")
+        y = librosa.resample(
+            y,
+            orig_sr=sr,
+            target_sr=SAMPLE_RATE,
+        )
+        sr = SAMPLE_RATE
+        audio_log(f"resampling finished: {len(y)} samples at {sr} Hz")
 
     audio_log("MFCC extraction started")
     mfcc = librosa.feature.mfcc(
