@@ -27,12 +27,20 @@ def audio_log(message):
     print(f"AUDIO MODEL: {message}", flush=True)
 
 
+def resample_audio(y, original_sr, target_sr):
+    """Lightweight linear resampling without librosa's resampler/numba path."""
+    if original_sr == target_sr:
+        return y
+
+    target_length = max(1, int(round(len(y) * target_sr / original_sr)))
+    old_positions = np.linspace(0.0, 1.0, num=len(y), endpoint=False)
+    new_positions = np.linspace(0.0, 1.0, num=target_length, endpoint=False)
+    return np.interp(new_positions, old_positions, y).astype(np.float32)
+
+
 def extract_features(file_path):
     """
     Extract the same 88 features used during training.
-
-    Use soundfile directly for WAV decoding instead of librosa.load.
-    This avoids the Render free-tier stall observed during audio loading.
     """
 
     audio_log("soundfile.read started")
@@ -50,14 +58,10 @@ def extract_features(file_path):
         y = y[:max_samples]
 
     if sr != SAMPLE_RATE:
-        audio_log(f"resampling started: {sr} -> {SAMPLE_RATE} Hz")
-        y = librosa.resample(
-            y,
-            orig_sr=sr,
-            target_sr=SAMPLE_RATE,
-        )
+        audio_log(f"lightweight resampling started: {sr} -> {SAMPLE_RATE} Hz")
+        y = resample_audio(y, sr, SAMPLE_RATE)
         sr = SAMPLE_RATE
-        audio_log(f"resampling finished: {len(y)} samples at {sr} Hz")
+        audio_log(f"lightweight resampling finished: {len(y)} samples at {sr} Hz")
 
     audio_log("MFCC extraction started")
     mfcc = librosa.feature.mfcc(
@@ -133,7 +137,6 @@ def analyze_animal_audio(file_path):
         probabilities[prediction_index]
     )
 
-    # Return all class probabilities as well.
     class_probabilities = {}
 
     for index, class_name in enumerate(
